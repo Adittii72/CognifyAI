@@ -5,3 +5,4 @@ google-generativeai
 youtube-transcript-api
 PyPDF2
 python-multipart
+numpy
