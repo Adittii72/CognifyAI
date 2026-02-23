@@ -1,5 +1,5 @@
 import uuid
-from youtube_transcript_api import YouTubeTranscriptApi
+import yt_dlp
 from urllib.parse import urlparse, parse_qs
 from simple_storage import store_content
 
@@ -22,24 +22,56 @@ async def process_youtube_video(url: str) -> tuple[str, str]:
     try:
         video_id = extract_video_id(url)
         
-        # Try the new API first (1.2.4+)
-        try:
-            api = YouTubeTranscriptApi()
-            transcript_obj = api.fetch(video_id)
-            snippets = transcript_obj.snippets
-            full_text = " ".join([snippet.text for snippet in snippets])
-        except Exception as api_error:
-            # Fallback to old API method
-            try:
-                transcript = YouTubeTranscriptApi.get_transcript(video_id)
-                full_text = " ".join([entry['text'] for entry in transcript])
-            except Exception:
-                # If both fail, provide helpful error
-                raise Exception(
-                    "YouTube is blocking transcript requests from this server. "
-                    "This is a known limitation when using cloud hosting. "
-                    "Please try uploading a PDF instead, or use the app locally."
-                )
+        # Use yt-dlp to get subtitles
+        ydl_opts = {
+            'skip_download': True,
+            'writesubtitles': True,
+            'writeautomaticsub': True,
+            'subtitleslangs': ['en'],
+            'quiet': True,
+            'no_warnings': True,
+        }
+        
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(f"https://www.youtube.com/watch?v={video_id}", download=False)
+            
+            # Try to get subtitles
+            subtitles = info.get('subtitles', {}).get('en') or info.get('automatic_captions', {}).get('en')
+            
+            if not subtitles:
+                raise Exception("No subtitles available for this video")
+            
+            # Get the subtitle URL (prefer vtt format)
+            subtitle_url = None
+            for sub in subtitles:
+                if sub.get('ext') == 'vtt':
+                    subtitle_url = sub.get('url')
+                    break
+            
+            if not subtitle_url and subtitles:
+                subtitle_url = subtitles[0].get('url')
+            
+            if not subtitle_url:
+                raise Exception("Could not find subtitle URL")
+            
+            # Download and parse subtitles
+            import requests
+            response = requests.get(subtitle_url)
+            subtitle_text = response.text
+            
+            # Simple VTT parsing - extract text only
+            lines = subtitle_text.split('\n')
+            full_text = []
+            for line in lines:
+                line = line.strip()
+                # Skip timestamps and metadata
+                if line and not line.startswith('WEBVTT') and '-->' not in line and not line.isdigit():
+                    full_text.append(line)
+            
+            full_text = " ".join(full_text)
+            
+            if not full_text:
+                raise Exception("Could not extract text from subtitles")
         
         # Generate unique content ID
         content_id = str(uuid.uuid4())
