@@ -22,15 +22,11 @@ async def process_youtube_video(url: str) -> tuple[str, str]:
     try:
         video_id = extract_video_id(url)
         
-        # Use the new API
-        api = YouTubeTranscriptApi()
-        transcript_obj = api.fetch(video_id)
-        
-        # Get the transcript snippets
-        snippets = transcript_obj.snippets
+        # Get transcript using the older API (0.6.2)
+        transcript = YouTubeTranscriptApi.get_transcript(video_id)
         
         # Combine transcript into single text
-        full_text = " ".join([snippet.text for snippet in snippets])
+        full_text = " ".join([entry['text'] for entry in transcript])
         
         # Generate unique content ID
         content_id = str(uuid.uuid4())
