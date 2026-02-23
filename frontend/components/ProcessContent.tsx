@@ -65,13 +65,19 @@ export default function ProcessContent({ onContentProcessed }: ProcessContentPro
   return (
     <div className="space-y-6">
       {/* YouTube Section */}
-      <div className="group">
+      <div className="group opacity-60">
         <div className="flex items-center gap-2 mb-4">
           <div className="relative">
             <Youtube className="w-5 h-5 text-pink-400 transition-transform group-hover:scale-110" />
             <div className="absolute inset-0 blur-md bg-pink-500/30 rounded-full"></div>
           </div>
           <h2 className="text-xl font-bold gradient-text">Process YouTube Video</h2>
+          <span className="text-xs bg-yellow-900/40 text-yellow-300 px-2 py-1 rounded-full border border-yellow-500/40">Limited</span>
+        </div>
+        <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-4 mb-3">
+          <p className="text-yellow-200 text-xs">
+            ⚠️ YouTube feature may not work on cloud hosting due to YouTube's bot detection. For best results, use PDF upload below.
+          </p>
         </div>
         <form onSubmit={handleYoutubeSubmit} className="space-y-3">
           <input
@@ -100,7 +106,7 @@ export default function ProcessContent({ onContentProcessed }: ProcessContentPro
           <div className="w-full border-t border-purple-500/20"></div>
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-gray-900 px-3 text-purple-400 text-xs font-semibold">OR</span>
+          <span className="bg-gray-900 px-3 text-purple-400 text-xs font-semibold">RECOMMENDED</span>
         </div>
       </div>
 
@@ -112,6 +118,7 @@ export default function ProcessContent({ onContentProcessed }: ProcessContentPro
             <div className="absolute inset-0 blur-md bg-purple-500/30 rounded-full"></div>
           </div>
           <h2 className="text-xl font-bold gradient-text">Upload PDF</h2>
+          <span className="text-xs bg-green-900/40 text-green-300 px-2 py-1 rounded-full border border-green-500/40">✓ Reliable</span>
         </div>
         <form onSubmit={handlePdfSubmit} className="space-y-3">
           <div className="relative border-2 border-dashed border-purple-500/40 rounded-xl p-8 text-center hover:border-pink-500/60 transition-all duration-300 bg-gray-900/40 backdrop-blur-sm group/upload cursor-pointer">
