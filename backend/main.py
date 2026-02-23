@@ -10,7 +10,6 @@ from services.youtube_service import process_youtube_video
 from services.pdf_service import process_pdf_document
 from services.ai_service import generate_flashcards, generate_quiz, chat_with_content
 from services.vector_service import store_embeddings, search_similar
-from database import init_db
 
 load_dotenv()
 
@@ -24,16 +23,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Initialize database
-@app.on_event("startup")
-async def startup_event():
-    try:
-        init_db()
-        print("Database initialized successfully!")
-    except Exception as e:
-        print(f"Warning: Database initialization failed: {e}")
-        print("The app will start but database operations may fail.")
 
 # Models
 class VideoRequest(BaseModel):
