@@ -22,15 +22,24 @@ async def process_youtube_video(url: str) -> tuple[str, str]:
     try:
         video_id = extract_video_id(url)
         
-        # Use the new API (1.2.4+)
-        api = YouTubeTranscriptApi()
-        transcript_obj = api.fetch(video_id)
-        
-        # Get the transcript snippets
-        snippets = transcript_obj.snippets
-        
-        # Combine transcript into single text
-        full_text = " ".join([snippet.text for snippet in snippets])
+        # Try the new API first (1.2.4+)
+        try:
+            api = YouTubeTranscriptApi()
+            transcript_obj = api.fetch(video_id)
+            snippets = transcript_obj.snippets
+            full_text = " ".join([snippet.text for snippet in snippets])
+        except Exception as api_error:
+            # Fallback to old API method
+            try:
+                transcript = YouTubeTranscriptApi.get_transcript(video_id)
+                full_text = " ".join([entry['text'] for entry in transcript])
+            except Exception:
+                # If both fail, provide helpful error
+                raise Exception(
+                    "YouTube is blocking transcript requests from this server. "
+                    "This is a known limitation when using cloud hosting. "
+                    "Please try uploading a PDF instead, or use the app locally."
+                )
         
         # Generate unique content ID
         content_id = str(uuid.uuid4())
